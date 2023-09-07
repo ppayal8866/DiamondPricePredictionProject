@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>BUS 235A Final Project</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">BUS 235A Final Project</h1>
+</header>
+<pre class="{r}"><code>library(janitor)
+library(dplyr)
+library(corrplot)
+library(RColorBrewer)
+library(caret)
+library(ggplot2)
+coul &lt;- brewer.pal(5, &quot;Set2&quot;)</code></pre>
+<h1 id="loading-data">Loading Data</h1>
+<pre class="{r}"><code>data1 &lt;- read.csv(&quot;diamonds.csv&quot;, header = TRUE)</code></pre>
+<h1 id="data-cleaning">Data Cleaning</h1>
+<h2 id="remove-empty-rows-and-columns-of-data">1. Remove empty rows and
+columns of Data</h2>
+<pre class="{r}"><code>data2 &lt;- remove_empty(data1, which = c(&quot;rows&quot;,&quot;cols&quot;), quiet = FALSE)
+
+## The argument quiet = FAlSE used for to display message whether there is empty rows/columns in the data1 or not.</code></pre>
+<p>##2. Remove Duplicate Rows of Data using distinct() function
+available in dplyr R package</p>
+<pre class="{r}"><code>diamonds_df &lt;- distinct(data2)
+
+## There is no duplicate data to be removed.</code></pre>
+<h1 id="summarizing-data">Summarizing Data</h1>
+<pre class="{r}"><code>summary(diamonds_df)</code></pre>
+<h2 id="number-of-rows-and-columns">Number of rows and columns</h2>
+<pre class="{r}"><code>cat(sprintf(&quot;Number of rows: %d, Number of columns: %d&quot;, nrow(diamonds_df),
+ncol(diamonds_df)))</code></pre>
+<h2 id="droping-column-x-as-we-already-have-the-index">Droping column X
+as we already have the index</h2>
+<pre class="{r}"><code>dF &lt;- subset(diamonds_df, select = -c(X) )</code></pre>
+<pre class="{r}"><code>sapply(dF,class)</code></pre>
+<h1 id="categorical-columns-plots">Categorical Columns Plots</h1>
+<pre class="{r}"><code># 1. cut
+par(mfrow = c(2,2))
+count1 &lt;- table(dF$cut)
+barplot(count1, ylab = &quot;count&quot;, xlab = &quot;cut&quot;, col = coul)
+
+# 2. color
+count2 &lt;- table(dF$color)
+barplot(count2, ylab = &quot;count&quot;, xlab = &quot;color&quot;, col = coul)
+
+# 3. clarity
+count3 &lt;- table(dF$clarity)
+barplot(count3, ylab = &quot;count&quot;, xlab = &quot;clarity&quot;, col = coul)
+</code></pre>
+<h1 id="numeric-columns">Numeric Columns</h1>
+<h2 id="response-variable---price">Response Variable - Price</h2>
+<pre class="{r}"><code>summary(dF)</code></pre>
+<pre class="{r}"><code>boxplot(dF$price, col = coul, ylab = &quot;price&quot;, main = &quot;Boxplot of Price&quot;)</code></pre>
+<h1 id="scatter-plot">scatter plot</h1>
+<pre class="{r}"><code>
+par(mfrow = c(2,2))
+
+# 1. carat
+plot(price ~ carat, data = dF, main = &quot;Price vs carat&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ carat, data = dF))
+
+# 2. depth
+plot(price ~ depth, data = dF, main = &quot;Price vs depth&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ depth, data = dF))
+
+# 3. table
+plot(price ~ table, data = dF, main = &quot;Price vs table&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ table, data = dF))
+
+# 4. x
+plot(price ~ x, data = dF, main = &quot;Price vs x&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ x, data = dF))
+
+# 5. y
+plot(price ~ y, data = dF, main = &quot;Price vs y&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ y, data = dF))
+
+# 6. z
+plot(price ~ z, data = dF, main = &quot;Price vs z&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ z, data = dF))
+</code></pre>
+<h1 id="visualizing-data-with-boxplot">VISUALIZING DATA with
+boxplot</h1>
+<pre class="{r}"><code># 1. price vs. cut
+boxplot(dF$price ~ dF$cut, 
+        col = coul,
+        border = &quot;brown&quot;,
+        notch = TRUE,
+        ylab = &quot;price&quot;, 
+        xlab = &quot;carat&quot;)
+
+
+# 2. price vs. color
+boxplot(dF$price ~ dF$color, 
+        col = coul,
+        border = &quot;brown&quot;,
+        notch = TRUE,
+        ylab = &quot;price&quot;, 
+        xlab = &quot;color&quot;)
+
+
+# 3. price vs. clarity
+boxplot(dF$price ~ dF$clarity, 
+        col = coul,
+        border = &quot;brown&quot;,
+        notch = TRUE,
+        ylab = &quot;price&quot;, 
+        xlab = &quot;clarity&quot;)
+
+</code></pre>
+<h1 id="depth-and-price">Depth and Price</h1>
+<pre class="{r}"><code># Histogram of Depth
+par(mfrow = c(2,2))
+hist(dF$depth,xlab = &quot;depth&quot;,col = coul,border = &quot;blue&quot;)
+
+#  Depth vs Price
+plot(price ~ depth, data = dF, main = &quot;Price vs Depth&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ depth, data = dF))
+
+# We can infer from the plot that the Price can vary heavily for the same Depth.
+</code></pre>
+<h1 id="dimnesion---x-y-z">Dimnesion - x, y, z</h1>
+<pre class="{r}"><code>plot(density(dF$x))
+lines(density(dF$y))
+lines(density(dF$z))</code></pre>
+<p>Consutruct volume from width, height and length</p>
+<pre class="{r}"><code>dF$volume &lt;- dF$x * dF$y * dF$z</code></pre>
+<pre class="{r}"><code># 6. volume
+plot(price ~ volume, data = dF, main = &quot;Price vs volume&quot;, col =&quot;blue&quot;, pch = 16)
+abline(lm(price ~ volume, data = dF))</code></pre>
+<h2 id="correlation-of-numeric-data">Correlation of numeric data</h2>
+<pre class="{r}"><code>corrplot(cor(dF[,c(&#39;price&#39;, &#39;carat&#39;,&#39;depth&#39;,&#39;table&#39;, &#39;x&#39;,&#39;y&#39;,&#39;z&#39;,&#39;volume&#39;)]), type=&quot;full&quot;, method = &quot;number&quot; )</code></pre>
+<p>Looks like price is highly correlated to carat and least correlated
+to depth.</p>
+<h2 id="factor-coversion">factor coversion:</h2>
+<pre class="{r}"><code># cut quality of the cut (Fair, Good, Very Good, Premium, Ideal)
+# color diamond colour, from J (worst) to D (best)
+# clarity a measurement of how clear the diamond is (I1 (worst), SI2, SI1, VS2, VS1, VVS2, VVS1, IF (best))
+cut_levels &lt;- c(&quot;Fair&quot;, &quot;Good&quot;, &quot;Very Good&quot;, &quot;Premium&quot;, &quot;Ideal&quot;)
+clarity_levels &lt;- c(&quot;I1&quot;, &quot;SI2&quot;, &quot;SI1&quot;, &quot;VS2&quot;, &quot;VS1&quot;, &quot;VVS2&quot;, &quot;VVS1&quot;, &quot;IF&quot;)
+color_levels &lt;- c(&quot;D&quot;, &quot;E&quot;, &quot;F&quot;, &quot;G&quot;, &quot;H&quot;, &quot;I&quot;, &quot;J&quot;)
+dF$color = factor(dF$color, levels=color_levels)
+dF$cut = factor(dF$cut, levels=cut_levels)
+dF$clarity = factor(dF$clarity, levels=clarity_levels)</code></pre>
+<h2 id="splitting-dataset-into-15-test-and-85-training-data">Splitting
+dataset into 15% test and 85% training data</h2>
+<pre class="{r}"><code># all variables
+set.seed(2)
+samples &lt;- sample(1:nrow(dF), size=nrow(dF)/15)
+dF.test &lt;- dF[samples, ]
+dF.train &lt;- dF[-samples, ]
+cat(sprintf(&quot;Size of full dataset: %d\n&quot;, nrow(dF)))
+cat(sprintf(&quot;Size of train dataset: %d\n&quot;, nrow(dF.train)))
+cat(sprintf(&quot;Size of test dataset: %d\n&quot;, nrow(dF.test)))
+</code></pre>
+<h2 id="naive-model">Naive model</h2>
+<p>Model with all the variables</p>
+<pre class="{r}"><code>model &lt;- lm(price~., data=dF.train)
+summary(model)
+rmse.train &lt;- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))
+# 
+</code></pre>
+<p>Model without depth &amp; table variable</p>
+<pre class="{r}"><code>model &lt;- lm(price~carat+cut+color+clarity+x+y+z+volume, data=dF.train)
+summary(model)
+rmse.train &lt;- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))</code></pre>
+<p>Model without x, y, z variables</p>
+<pre class="{r}"><code>model &lt;- lm(price~carat+cut+color+clarity+depth+table+volume, data=dF.train)
+summary(model)
+rmse.train &lt;- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))</code></pre>
+<p>Model without volume variable</p>
+<pre class="{r}"><code>model &lt;- lm(price~carat+cut+color+clarity+depth+table+x+y+z, data=dF.train)
+summary(model)
+rmse.train &lt;- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))</code></pre>
+<p>Model with just the carat value</p>
+<pre class="{r}"><code>model &lt;- lm(price~carat, data=dF.train)
+summary(model)
+rmse.train &lt;- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))</code></pre>
+<p>Model without table variable</p>
+<pre class="{r}"><code>model &lt;- lm(price~carat+cut+color+clarity+depth+x+y+z+volume, data=dF.train)
+summary(model)
+rmse.train &lt;- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))</code></pre>
+<p>Model to predict log of value</p>
+<pre class="{r}"><code>model &lt;- lm(price~carat, data=dF.train)
+summary(model)
+rmse.train &lt;- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))</code></pre>
+<pre class="{r}"><code>library(DAAG)
+cvlm.model &lt;- CVlm(data=dF.train,model, m=4, seed=2, plotit = TRUE, printit = FALSE)</code></pre>
+<pre class="{r}"><code>library(lasso2)
+bounds = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16, 32, 64, 128, 256, 1024, 2048, 4096, 2^13, 2^14, 2^14, 2^15, 2^16)
+lasso.models &lt;- l1ce(price~carat+cut+color+clarity+x+y+z+volume, data=dF.train, absolute.t = TRUE, standardize = TRUE, bound = bounds)
+cat(&quot;Index\t   Bounds\tMSE\n&quot;)
+for (index in 1:length(bounds)) {
+ mse &lt;- sqrt(mean((predict(lasso.models[index]) - dF.train$price)^2))
+ cat(sprintf(&quot;%4d\t%10.2f\t%.4f\n&quot;, index, bounds[index], mse));
+}</code></pre>
+<pre class="{r}"><code>#summary(lasso.models[19])
+rmse.train &lt;- sqrt(mean((predict(lasso.models[19], newdata = dF.train) - dF.train$price)^2)) 
+rmse.test &lt;- sqrt(mean((predict(lasso.models[19], newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf(&quot;r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f&quot;, summary(model)$adj.r.squared, rmse.train, rmse.test))</code></pre>
+</body>
+</html>

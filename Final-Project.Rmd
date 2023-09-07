@@ -1,0 +1,312 @@
+---
+title: "BUS 235A Final Project"
+output: word_document
+---
+
+```{r}
+library(janitor)
+library(dplyr)
+library(corrplot)
+library(RColorBrewer)
+library(caret)
+library(ggplot2)
+coul <- brewer.pal(5, "Set2")
+```
+
+# Loading Data
+```{r}
+data1 <- read.csv("diamonds.csv", header = TRUE)
+```
+
+# Data Cleaning
+## 1. Remove empty rows and columns of Data 
+```{r}
+data2 <- remove_empty(data1, which = c("rows","cols"), quiet = FALSE)
+
+## The argument quiet = FAlSE used for to display message whether there is empty rows/columns in the data1 or not.
+```
+
+##2. Remove Duplicate Rows of Data using distinct() function available in dplyr R package
+```{r}
+diamonds_df <- distinct(data2)
+
+## There is no duplicate data to be removed.
+```
+
+# Summarizing Data
+```{r}
+summary(diamonds_df)
+```
+
+## Number of rows and columns
+```{r}
+cat(sprintf("Number of rows: %d, Number of columns: %d", nrow(diamonds_df),
+ncol(diamonds_df)))
+```
+
+## Droping column X as we already have the index
+```{r}
+dF <- subset(diamonds_df, select = -c(X) )
+```
+
+```{r}
+sapply(dF,class)
+```
+
+
+# Categorical Columns Plots
+```{r}
+# 1. cut
+par(mfrow = c(2,2))
+count1 <- table(dF$cut)
+barplot(count1, ylab = "count", xlab = "cut", col = coul)
+
+# 2. color
+count2 <- table(dF$color)
+barplot(count2, ylab = "count", xlab = "color", col = coul)
+
+# 3. clarity
+count3 <- table(dF$clarity)
+barplot(count3, ylab = "count", xlab = "clarity", col = coul)
+
+```
+
+# Numeric Columns
+
+## Response Variable - Price
+
+```{r}
+summary(dF)
+```
+
+
+```{r}
+boxplot(dF$price, col = coul, ylab = "price", main = "Boxplot of Price")
+```
+
+# scatter plot
+```{r}
+
+par(mfrow = c(2,2))
+
+# 1. carat
+plot(price ~ carat, data = dF, main = "Price vs carat", col ="blue", pch = 16)
+abline(lm(price ~ carat, data = dF))
+
+# 2. depth
+plot(price ~ depth, data = dF, main = "Price vs depth", col ="blue", pch = 16)
+abline(lm(price ~ depth, data = dF))
+
+# 3. table
+plot(price ~ table, data = dF, main = "Price vs table", col ="blue", pch = 16)
+abline(lm(price ~ table, data = dF))
+
+# 4. x
+plot(price ~ x, data = dF, main = "Price vs x", col ="blue", pch = 16)
+abline(lm(price ~ x, data = dF))
+
+# 5. y
+plot(price ~ y, data = dF, main = "Price vs y", col ="blue", pch = 16)
+abline(lm(price ~ y, data = dF))
+
+# 6. z
+plot(price ~ z, data = dF, main = "Price vs z", col ="blue", pch = 16)
+abline(lm(price ~ z, data = dF))
+
+```
+# VISUALIZING DATA with boxplot
+```{r}
+# 1. price vs. cut
+boxplot(dF$price ~ dF$cut, 
+        col = coul,
+        border = "brown",
+        notch = TRUE,
+        ylab = "price", 
+        xlab = "carat")
+
+
+# 2. price vs. color
+boxplot(dF$price ~ dF$color, 
+        col = coul,
+        border = "brown",
+        notch = TRUE,
+        ylab = "price", 
+        xlab = "color")
+
+
+# 3. price vs. clarity
+boxplot(dF$price ~ dF$clarity, 
+        col = coul,
+        border = "brown",
+        notch = TRUE,
+        ylab = "price", 
+        xlab = "clarity")
+
+
+```
+
+# Depth and Price
+```{r}
+# Histogram of Depth
+par(mfrow = c(2,2))
+hist(dF$depth,xlab = "depth",col = coul,border = "blue")
+
+#  Depth vs Price
+plot(price ~ depth, data = dF, main = "Price vs Depth", col ="blue", pch = 16)
+abline(lm(price ~ depth, data = dF))
+
+# We can infer from the plot that the Price can vary heavily for the same Depth.
+
+```
+
+# Dimnesion - x, y, z
+```{r}
+plot(density(dF$x))
+lines(density(dF$y))
+lines(density(dF$z))
+```
+
+Consutruct volume from width, height and length
+```{r}
+dF$volume <- dF$x * dF$y * dF$z
+```
+
+```{r}
+# 6. volume
+plot(price ~ volume, data = dF, main = "Price vs volume", col ="blue", pch = 16)
+abline(lm(price ~ volume, data = dF))
+```
+
+## Correlation of numeric data
+```{r}
+corrplot(cor(dF[,c('price', 'carat','depth','table', 'x','y','z','volume')]), type="full", method = "number" )
+```
+
+Looks like price is highly correlated to carat and least correlated to depth.
+
+## factor coversion:
+```{r}
+# cut quality of the cut (Fair, Good, Very Good, Premium, Ideal)
+# color diamond colour, from J (worst) to D (best)
+# clarity a measurement of how clear the diamond is (I1 (worst), SI2, SI1, VS2, VS1, VVS2, VVS1, IF (best))
+cut_levels <- c("Fair", "Good", "Very Good", "Premium", "Ideal")
+clarity_levels <- c("I1", "SI2", "SI1", "VS2", "VS1", "VVS2", "VVS1", "IF")
+color_levels <- c("D", "E", "F", "G", "H", "I", "J")
+dF$color = factor(dF$color, levels=color_levels)
+dF$cut = factor(dF$cut, levels=cut_levels)
+dF$clarity = factor(dF$clarity, levels=clarity_levels)
+```
+
+## Splitting dataset into 15% test and 85% training data
+
+```{r}
+# all variables
+set.seed(2)
+samples <- sample(1:nrow(dF), size=nrow(dF)/15)
+dF.test <- dF[samples, ]
+dF.train <- dF[-samples, ]
+cat(sprintf("Size of full dataset: %d\n", nrow(dF)))
+cat(sprintf("Size of train dataset: %d\n", nrow(dF.train)))
+cat(sprintf("Size of test dataset: %d\n", nrow(dF.test)))
+
+```
+
+## Naive model
+
+Model with all the variables
+```{r}
+model <- lm(price~., data=dF.train)
+summary(model)
+rmse.train <- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+# 
+
+```
+
+
+
+Model without depth & table variable
+```{r}
+model <- lm(price~carat+cut+color+clarity+x+y+z+volume, data=dF.train)
+summary(model)
+rmse.train <- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+```
+
+
+Model without x, y, z variables
+```{r}
+model <- lm(price~carat+cut+color+clarity+depth+table+volume, data=dF.train)
+summary(model)
+rmse.train <- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+```
+
+
+Model without volume variable
+```{r}
+model <- lm(price~carat+cut+color+clarity+depth+table+x+y+z, data=dF.train)
+summary(model)
+rmse.train <- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+```
+
+
+Model with just the carat value
+```{r}
+model <- lm(price~carat, data=dF.train)
+summary(model)
+rmse.train <- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+```
+
+
+Model without table variable
+```{r}
+model <- lm(price~carat+cut+color+clarity+depth+x+y+z+volume, data=dF.train)
+summary(model)
+rmse.train <- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+```
+
+Model to predict log of value
+```{r}
+model <- lm(price~carat, data=dF.train)
+summary(model)
+rmse.train <- sqrt(mean((predict(model, newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(model, newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+```
+
+
+
+```{r}
+library(DAAG)
+cvlm.model <- CVlm(data=dF.train,model, m=4, seed=2, plotit = TRUE, printit = FALSE)
+```
+
+```{r}
+library(lasso2)
+bounds = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16, 32, 64, 128, 256, 1024, 2048, 4096, 2^13, 2^14, 2^14, 2^15, 2^16)
+lasso.models <- l1ce(price~carat+cut+color+clarity+x+y+z+volume, data=dF.train, absolute.t = TRUE, standardize = TRUE, bound = bounds)
+cat("Index\t   Bounds\tMSE\n")
+for (index in 1:length(bounds)) {
+ mse <- sqrt(mean((predict(lasso.models[index]) - dF.train$price)^2))
+ cat(sprintf("%4d\t%10.2f\t%.4f\n", index, bounds[index], mse));
+}
+```
+
+
+```{r}
+#summary(lasso.models[19])
+rmse.train <- sqrt(mean((predict(lasso.models[19], newdata = dF.train) - dF.train$price)^2)) 
+rmse.test <- sqrt(mean((predict(lasso.models[19], newdata = dF.test) - dF.test$price)^2)) 
+cat(sprintf("r-squared: %.4f  RMSE train: %.2f  RMSE test: %.2f", summary(model)$adj.r.squared, rmse.train, rmse.test))
+```
+
