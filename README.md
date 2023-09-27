@@ -1,5 +1,3 @@
-# DiamondPricePredictionProject
-
 ## Project Name: Diamond Price Prediction using R
 
 ## Overview 
